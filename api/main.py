@@ -3,7 +3,7 @@ from PIL import Image
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 import io
-from SD2Model.impainting import *
+from SD2Model.inpainting import *
 
 
 class Txt2ImgModel(BaseModel):
@@ -22,8 +22,8 @@ app.add_middleware(
 def isalive():
     return {"message" : True}
 
-@app.post("/impaint/")
-async def impaint(image : UploadFile, mask : UploadFile , prompt : str = Form()):
+@app.post("/inpaint/")
+async def inpaint(image : UploadFile, mask : UploadFile , prompt : str = Form()):
     print(image.filename,mask.filename,prompt)
 
     image_bytes = await image.read()
@@ -34,6 +34,8 @@ async def impaint(image : UploadFile, mask : UploadFile , prompt : str = Form())
     mask_ = Image.open(io.BytesIO(mask_bytes))
     mask_.save(mask.filename)
 
+    result = get_inpainted_image(image,mask,prompt)
+    result.save("inpainted.png")
     return {"Image/Mask" : f"{image.filename}/{mask.filename}"}
 
 @app.post("/txt2img/")
