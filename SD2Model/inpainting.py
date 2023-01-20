@@ -2,7 +2,6 @@ import sys
 import cv2
 import torch
 import numpy as np
-import streamlit as st
 from PIL import Image
 from omegaconf import OmegaConf
 from einops import repeat
@@ -23,7 +22,6 @@ def put_watermark(img, wm_encoder=None):
     return img
 
 
-@st.cache(allow_output_mutation=True)
 def initialize_model(config, ckpt):
     config = OmegaConf.load(config)
     model = instantiate_from_config(config.model)
@@ -125,15 +123,14 @@ def inpaint(sampler, image, mask, prompt, seed, scale, ddim_steps, num_samples=1
 
 def get_inpainted_image(image,mask,prompt):
     
-    sampler = initialize_model(sys.argv[1], sys.argv[2])
+    sampler = initialize_model('SD2Model/v2-inpainting-inference.yaml', 'SD2Model/models/sd-v1-5-inpainting.ckpt')
     
-    seed = st.number_input("Seed", min_value=0, max_value=1000000, value=0)
-    num_samples = st.number_input("Number of Samples", min_value=1, max_value=64, value=1)
-    scale = st.slider("Scale", min_value=0.1, max_value=30.0, value=10., step=0.1)
-    ddim_steps = st.slider("DDIM Steps", min_value=0, max_value=50, value=50, step=1)
-    eta = st.sidebar.number_input("eta (DDIM)", value=0., min_value=0., max_value=1.)
+    seed = 0
+    num_samples = 1
+    scale = 10.
+    ddim_steps = 50
+    eta = 0.
     
-
     w, h = image.size
     print(f"loaded input image of size ({w}, {h})")
     width, height = map(lambda x: x - x % 64, (w, h))  # resize to integer multiple of 32
