@@ -9,7 +9,7 @@ from imwatermark import WatermarkEncoder
 
 from ldm.models.diffusion.ddim import DDIMSampler
 from ldm.util import instantiate_from_config
-
+from functools import lru_cache
 
 torch.set_grad_enabled(False)
 
@@ -22,6 +22,8 @@ def put_watermark(img, wm_encoder=None):
     return img
 
 
+
+@lru_cache(maxsize=None)
 def initialize_model(config, ckpt):
     config = OmegaConf.load(config)
     model = instantiate_from_config(config.model)
@@ -29,7 +31,7 @@ def initialize_model(config, ckpt):
     model.load_state_dict(torch.load(ckpt)["state_dict"], strict=False)
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    model = model.to(device)
+    model = model.to(device, dtype = torch.float16)
     sampler = DDIMSampler(model)
 
     return sampler
@@ -43,10 +45,10 @@ def make_batch_sd(
         num_samples=1):
     image = np.array(image.convert("RGB"))
     image = image[None].transpose(0, 3, 1, 2)
-    image = torch.from_numpy(image).to(dtype=torch.float32) / 127.5 - 1.0
+    image = torch.from_numpy(image).to(dtype=torch.float16) / 127.5 - 1.0
 
     mask = np.array(mask.convert("L"))
-    mask = mask.astype(np.float32) / 255.0
+    mask = mask.astype(np.float16)
     mask = mask[None, None]
     mask[mask < 0.5] = 0
     mask[mask >= 0.5] = 1
@@ -74,7 +76,7 @@ def inpaint(sampler, image, mask, prompt, seed, scale, ddim_steps, num_samples=1
 
     prng = np.random.RandomState(seed)
     start_code = prng.randn(num_samples, 4, h // 8, w // 8)
-    start_code = torch.from_numpy(start_code).to(device=device, dtype=torch.float32)
+    start_code = torch.from_numpy(start_code).to(device=device, dtype=torch.float16)
 
     with torch.no_grad(), \
             torch.autocast("cuda"):
@@ -121,21 +123,20 @@ def inpaint(sampler, image, mask, prompt, seed, scale, ddim_steps, num_samples=1
     return [put_watermark(Image.fromarray(img.astype(np.uint8)), wm_encoder) for img in result]
 
 
-def get_inpainted_image(image,mask,prompt):
-    
-    sampler = initialize_model('SD2Model/v2-inpainting-inference.yaml', 'SD2Model/models/sd-v1-5-inpainting.ckpt')
+def get_inpainted_image(image,mask,prompt,sampler):
     
     seed = 0
     num_samples = 1
     scale = 10.
-    ddim_steps = 50
+    ddim_steps = 100
     eta = 0.
     
     w, h = image.size
     print(f"loaded input image of size ({w}, {h})")
     width, height = map(lambda x: x - x % 64, (w, h))  # resize to integer multiple of 32
+    width = height = 512
     image = image.resize((width, height))
-    mask = Image.fromarray(mask)
+    mask = mask.resize((width, height))
 
     result = inpaint(
         sampler=sampler,

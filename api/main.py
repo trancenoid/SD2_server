@@ -18,6 +18,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+sampler = initialize_model('SD2Model/v2-inpainting-inference.yaml', 'SD2Model/models/512-inpainting-ema.ckpt')
+
 @app.get("/isalive")
 def isalive():
     return {"message" : True}
@@ -34,8 +36,8 @@ async def inpaint(image : UploadFile, mask : UploadFile , prompt : str = Form())
     mask_ = Image.open(io.BytesIO(mask_bytes))
     mask_.save(mask.filename)
 
-    result = get_inpainted_image(image,mask,prompt)
-    result.save("inpainted.png")
+    result = get_inpainted_image(image_,mask_,prompt,sampler)
+    result[0].save("inpainted.png")
     return {"Image/Mask" : f"{image.filename}/{mask.filename}"}
 
 @app.post("/txt2img/")
