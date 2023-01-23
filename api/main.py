@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, Form
+from fastapi import FastAPI, UploadFile, Form, Response
 from PIL import Image
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,7 +38,11 @@ async def inpaint(image : UploadFile, mask : UploadFile , prompt : str = Form())
 
     result = get_inpainted_image(image_,mask_,prompt,sampler)
     result[0].save("inpainted.png")
-    return {"Image/Mask" : f"{image.filename}/{mask.filename}"}
+
+    png_bytes = io.BytesIO()
+    result[0].save(png_bytes, format='PNG').getvalue()
+
+    return Response(content=png_bytes, status_code=200, media_type="image/png")
 
 @app.post("/txt2img/")
 async def txt2img(body : Txt2ImgModel):
