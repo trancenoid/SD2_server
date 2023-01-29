@@ -40,9 +40,9 @@ async def inpaint(image : UploadFile, mask : UploadFile , prompt : str = Form())
     result[0].save("inpainted.png")
 
     png_bytes = io.BytesIO()
-    result[0].save(png_bytes, format='PNG').getvalue()
+    result[0].save(png_bytes, format='PNG')
 
-    return Response(content=png_bytes, status_code=200, media_type="image/png")
+    return Response(content=png_bytes.getvalue(), status_code=200, media_type="image/png")
 
 @app.post("/txt2img/")
 async def txt2img(body : Txt2ImgModel):

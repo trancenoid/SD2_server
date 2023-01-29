@@ -128,7 +128,7 @@ def get_inpainted_image(image,mask,prompt,sampler):
     seed = 0
     num_samples = 1
     scale = 10.
-    ddim_steps = 100
+    ddim_steps = 50
     eta = 0.
     
     w, h = image.size
