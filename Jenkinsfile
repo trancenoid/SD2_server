@@ -8,7 +8,7 @@ pipeline {
                 export PATH=/home/ubuntu/main_drive/anaconda3/bin:$PATH # modify this path 
                 eval "$(conda shell.bash hook)"
                 conda activate ldm
-                conda install --file requirements.txt
+                pip install -r requirements.txt
                 echo 'Build complete'
                 '''
                 
