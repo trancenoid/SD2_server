@@ -5,7 +5,7 @@ pipeline {
             steps {
                 echo 'Building SD2 Server'
                 sh '''
-                export PATH=/main_drive/anaconda3/bin:$PATH # modify this path 
+                export PATH=/home/ubuntu/main_drive/anaconda3/bin:$PATH # modify this path 
                 eval "$(conda shell.bash hook)"
                 conda activate ldm
                 conda install --file requirements.txt
