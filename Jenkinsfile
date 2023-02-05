@@ -4,9 +4,12 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building SD2 Server'
+                sh '''
                 conda activate ldm
                 conda install --file requirements.txt
                 echo 'Build complete'
+                '''
+                
             }
         }
         stage('Deliver') {
