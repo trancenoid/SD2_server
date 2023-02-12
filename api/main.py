@@ -3,7 +3,7 @@ from PIL import Image
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 import io
-from SD2Model.inpainting import *
+from inpainting import *
 
 
 class Txt2ImgModel(BaseModel):
@@ -18,7 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-sampler = initialize_model('SD2Model/v2-inpainting-inference.yaml', 'SD2Model/models/512-inpainting-ema.ckpt')
+sampler = initialize_model('v2-inpainting-inference.yaml', 'models/512-inpainting-ema.ckpt')
 
 @app.get("/isalive")
 def isalive():
