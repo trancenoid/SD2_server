@@ -1,5 +1,12 @@
-# How to use
+# How to use locally
 ```
 pip install -r requirements.txt
-fastapi run api/main.py
+fastapi dev api/main.py
+```
+
+# Docker Image
+
+```
+docker build . -t sd2server
+docker run sd2server
 ```
